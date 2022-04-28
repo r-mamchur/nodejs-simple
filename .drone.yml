@@ -10,7 +10,7 @@ steps:
   - npm ci
 
 - name: change port
-  image: alpine
+  image: alpine:3.15.4
   commands:
   - echo ${DRONE_BUILD_EVENT}
   - echo $DRONE_BUILD_EVENT
@@ -37,7 +37,7 @@ steps:
   - npm ci  
 
 - name: change port
-  image: alpine
+  image: alpine:3.15.4
   commands:
   - echo ${DRONE_BUILD_EVENT}
   - echo $DRONE_BUILD_EVENT
@@ -70,7 +70,7 @@ steps:
   - npm doctor || exit 0
 
 - name: change port
-  image: alpine
+  image: alpine:3.15.4
   commands:
   - sed -i -e "s|build|Development env., build - $DRONE_BUILD_NUMBER|g" test-ci.js
   - sed -i -e "s|3000|4202|g" test-ci.js
@@ -78,7 +78,7 @@ steps:
   - env
 
 - name: key
-  image: alpine
+  image: alpine:3.15.4
   commands:
   - echo $getbuild
   - '[ $getbuild ] && echo "It worked, Key1!" || echo "It worked, false!" '

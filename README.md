@@ -5,8 +5,8 @@ For test CI.
 ## TeamCity
 
 ## Drone.io
-Branch '**dev**' is auto deployed into Development env.
-Branch '**master**' is auto deployed into Test env.
+Branch '**dev**' is auto deployed into Development env.    
+Branch '**master**' is auto deployed into Test env.      
 Deployment into Production env. via the use of the promotion feature.
 ```
 docker run \

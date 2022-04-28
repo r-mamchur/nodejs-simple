@@ -7,7 +7,7 @@ steps:
 - name: install
   image: node:lts
   commands:
-  - npm ci  
+  - npm ci
 
 - name: change port
   image: alpine
@@ -18,31 +18,6 @@ steps:
   - sed -i -e "s|build|Production env., build - $DRONE_BUILD_NUMBER, pearent - $DRONE_BUILD_PARENT| g" test-ci.js
   - sed -i -e "s|3000|4201|g" test-ci.js
   - cat test-ci.js
-
-- name: scp
-  image: appleboy/drone-scp
-  settings:      
-    host:
-    - 192.168.56.223
-    user: test
-    key:
-       from_secret: ssh-key
-    target: /way-tales/be-prod
-    source:
-      - ./*
-    rm: true
-
-- name: restart way-tales-be-prod
-  image: appleboy/drone-ssh
-  settings:      
-    host:
-    - 192.168.56.223
-    user: test
-    key:
-       from_secret: ssh-key    
-    script:
-      - sudo systemctl restart way-tales-be-prod
-      - ls -la
 
 trigger:
   branch:
@@ -70,31 +45,6 @@ steps:
   - sed -i -e "s|build|Testing env., build - $DRONE_BUILD_NUMBER|g" test-ci.js
   - sed -i -e "s|3000|4200|g" test-ci.js
   - cat test-ci.js
-
-- name: scp
-  image: appleboy/drone-scp
-  settings:      
-    host:
-    - 192.168.56.223
-    user: test
-    key:
-       from_secret: ssh-key
-    target: /way-tales/be-test
-    source:
-      - ./*
-    rm: true
-
-- name: restart way-tales-be-test
-  image: appleboy/drone-ssh
-  settings:      
-    host:
-    - 192.168.56.223
-    user: test
-    key:
-       from_secret: ssh-key
-    script:
-      - sudo systemctl restart way-tales-be-test
-      - ls -la
 
 trigger:
   branch:
@@ -143,19 +93,6 @@ steps:
   - echo $getbuild
   - '[ $getbuild ] && echo "It worked, Key1!" || echo "It worked, false!" '
   
-- name: scp
-  image: appleboy/drone-scp
-  settings:
-    host:
-    - 192.168.56.223
-    user: test
-    key:
-       from_secret: ssh-key
-    target: /way-tales/be-dev
-    source:
-      - ./*
-    rm: true
-
 - name: restart way-tales-be-dev
   image: appleboy/drone-ssh
   settings:
@@ -163,7 +100,7 @@ steps:
     - 192.168.56.223
     user: test
     key:
-       from_secret: ssh-key    
+       from_secret: ssh-key
     script:
       - sudo systemctl restart way-tales-be-dev
       - ls -la

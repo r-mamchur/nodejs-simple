@@ -1,0 +1,202 @@
+---
+name: node-master-prod
+kind: pipeline
+type: docker
+
+steps:
+- name: install
+  image: node:lts
+  commands:
+  - npm ci  
+
+- name: change port
+  image: alpine
+  commands:
+  - echo ${DRONE_BUILD_EVENT}
+  - echo $DRONE_BUILD_EVENT
+  - echo "It worked, master, PROMOTE!"
+  - sed -i -e "s|build|Production env., build - $DRONE_BUILD_NUMBER, pearent - $DRONE_BUILD_PARENT| g" test-ci.js
+  - sed -i -e "s|3000|4201|g" test-ci.js
+  - cat test-ci.js
+
+- name: scp
+  image: appleboy/drone-scp
+  settings:      
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    target: /way-tales/be-prod
+    source:
+      - ./*
+    rm: true
+
+- name: restart way-tales-be-prod
+  image: appleboy/drone-ssh
+  settings:      
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key    
+    script:
+      - sudo systemctl restart way-tales-be-prod
+      - ls -la
+
+trigger:
+  branch:
+  - dev
+  event:
+  - promote
+
+---
+name: node-master
+kind: pipeline
+type: docker
+
+steps:
+- name: install
+  image: node:lts
+  commands:
+  - npm ci  
+
+- name: change port
+  image: alpine
+  commands:
+  - echo ${DRONE_BUILD_EVENT}
+  - echo $DRONE_BUILD_EVENT
+  - echo "It worked, master!"
+  - sed -i -e "s|build|Testing env., build - $DRONE_BUILD_NUMBER|g" test-ci.js
+  - sed -i -e "s|3000|4200|g" test-ci.js
+  - cat test-ci.js
+
+- name: scp
+  image: appleboy/drone-scp
+  settings:      
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    target: /way-tales/be-test
+    source:
+      - ./*
+    rm: true
+
+- name: restart way-tales-be-test
+  image: appleboy/drone-ssh
+  settings:      
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key    
+    script:
+      - sudo systemctl restart way-tales-be-test
+      - ls -la
+
+trigger:
+  branch:
+  - master
+
+---
+name: node-dev
+kind: pipeline
+type: docker
+
+steps:
+- name: install
+  image: node:latest
+  failure: ignore
+  commands:
+  - npm ci  
+  - npm audit
+  - npm audit fix --force  
+  when:
+    branch:
+    - flomaster
+
+- name: npm doctor
+  image: node:latest
+  # failure: ignore
+  commands:
+  - npm doctor || exit 0
+  when:
+    branch:
+    - flomaster
+
+- name: change port
+  image: alpine
+  commands:
+  - echo ${DRONE_BUILD_EVENT}
+  - echo $DRONE_BUILD_EVENT
+  - echo "It worked, dev!"
+  - sed -i -e "s|build|Development env., build - $DRONE_BUILD_NUMBER|g" test-ci.js
+  - sed -i -e "s|3000|4202|g" test-ci.js
+  - cat test-ci.js
+  - env
+
+- name: key
+  image: alpine
+  commands:
+  - echo $getbuild
+  - '[ $getbuild ] && echo "It worked, Key1!" || echo "It worked, false!" '
+  
+- name: scp
+  image: appleboy/drone-scp
+  settings:      
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    target: /way-tales/be-dev
+    source:
+      - ./*
+    rm: true
+
+- name: restart way-tales-be-dev
+  image: appleboy/drone-ssh
+  settings:      
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key    
+    script:
+      - sudo systemctl restart way-tales-be-dev
+      - ls -la
+  when:
+    branch:
+    - flomaster
+
+trigger:
+  branch:
+  - dev
+  event:
+    exclude:
+    - promote
+
+---
+kind: pipeline
+name: notify
+
+steps:
+ 
+- name: notify
+  image: drillster/drone-email
+  settings:      
+      host: wp1023958.mailout.server-he.de
+      username: wp1023958-cloud
+      password:
+        from_secret: email-passwd  
+      from: Drone CI <cloud@wilke-experience.de>
+      recipients: [ rb.mamchur@gmail.com, r.mamchur.we@gmail.com ]
+  when:
+    branch:
+    - flomaster
+  
+depends_on:
+- node-master
+- node-dev

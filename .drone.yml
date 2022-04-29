@@ -8,20 +8,43 @@ steps:
   image: node:lts
   commands:
   - npm ci
+  - npm audit fix --force
 
 - name: change port
   image: alpine:3.15.4
   commands:
-  - echo ${DRONE_BUILD_EVENT}
-  - echo $DRONE_BUILD_EVENT
   - echo "It worked, master, PROMOTE!"
   - sed -i -e "s|build|Production env., build - $DRONE_BUILD_NUMBER, pearent - $DRONE_BUILD_PARENT| g" test-ci.js
   - sed -i -e "s|3000|4201|g" test-ci.js
   - cat test-ci.js
 
+- name: scp
+  image: appleboy/drone-scp
+  settings:
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    target: /way-tales/be-prod
+    source:
+      - ./*
+      - !./.git/*
+    rm: true
+
+- name: restart way-tales-be-prod
+  image: appleboy/drone-ssh
+  settings:
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    script:
+      - sudo systemctl restart way-tales-be-prod
 trigger:
   branch:
-  - dev
+  - master
   event:
   - promote
 
@@ -40,9 +63,7 @@ steps:
 - name: change port
   image: alpine:3.15.4
   commands:
-  - echo ${DRONE_BUILD_EVENT}
-  - echo $DRONE_BUILD_EVENT
-  - echo "It worked, master!"
+  - echo "It worked, master, test!"
   - sed -i -e "s|build|Testing env., build - $DRONE_BUILD_NUMBER|g" test-ci.js
   - sed -i -e "s|3000|4200|g" test-ci.js
   - cat test-ci.js
@@ -55,13 +76,13 @@ steps:
     user: test
     key:
        from_secret: ssh-key
-    target: /way-tales/be-dev
+    target: /way-tales/be-test
     source:
       - ./*
       - !./.git/*
     rm: true
 
-- name: restart way-tales-be-dev
+- name: restart way-tales-be-test
   image: appleboy/drone-ssh
   settings:
     host:
@@ -70,12 +91,13 @@ steps:
     key:
        from_secret: ssh-key
     script:
-      - sudo systemctl restart way-tales-be-dev
-
-
+      - sudo systemctl restart way-tales-be-test
 trigger:
   branch:
   - master
+  event:
+    exclude:
+    - promote
 
 ---
 name: node-dev
@@ -104,6 +126,8 @@ steps:
   - cat test-ci.js
   - env
 
+# To do something when passed key "getbuild=true"
+# I haven't found another way.
 - name: key
   image: alpine:3.15.4
   commands:
@@ -134,7 +158,6 @@ steps:
        from_secret: ssh-key
     script:
       - sudo systemctl restart way-tales-be-dev
-
 trigger:
   branch:
   - dev
@@ -147,20 +170,23 @@ kind: pipeline
 name: notify
 
 steps:
- 
+
 - name: notify
   image: drillster/drone-email
   settings:
-      host: wp1023958.mailout.server-he.de
-      username: wp1023958-cloud
+      host:
+        from_secret: email-host
+      username:
+        from_secret: email-user
       password:
-        from_secret: email-passwd  
-      from: Drone CI <cloud@wilke-experience.de>
+        from_secret: email-passwd
+      from:
+        from_secret: email-from
       recipients: [ rb.mamchur@gmail.com, r.mamchur.we@gmail.com ]
   when:
     branch:
     - flomaster
-  
+
 depends_on:
 - node-master
 - node-dev

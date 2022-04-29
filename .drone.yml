@@ -184,9 +184,9 @@ steps:
       from: 
         from_secret: email-from
       recipients: [ rb.mamchur@gmail.com, r.mamchur.we@gmail.com ]
-#  when:
-#    branch:
-#    - flomaster
+  when:
+    branch:
+    - flomaster
   
 depends_on:
 - node-master

@@ -13,8 +13,6 @@ steps:
 - name: change port
   image: alpine:3.15.4
   commands:
-  - echo ${DRONE_BUILD_EVENT}
-  - echo $DRONE_BUILD_EVENT
   - echo "It worked, master, PROMOTE!"
   - sed -i -e "s|build|Production env., build - $DRONE_BUILD_NUMBER, pearent - $DRONE_BUILD_PARENT| g" test-ci.js
   - sed -i -e "s|3000|4201|g" test-ci.js
@@ -66,9 +64,7 @@ steps:
 - name: change port
   image: alpine:3.15.4
   commands:
-  - echo ${DRONE_BUILD_EVENT}
-  - echo $DRONE_BUILD_EVENT
-  - echo "It worked, master!"
+  - echo "It worked, master, test!"
   - sed -i -e "s|build|Testing env., build - $DRONE_BUILD_NUMBER|g" test-ci.js
   - sed -i -e "s|3000|4200|g" test-ci.js
   - cat test-ci.js
@@ -179,15 +175,18 @@ steps:
 - name: notify
   image: drillster/drone-email
   settings:
-      host: wp1023958.mailout.server-he.de
-      username: wp1023958-cloud
+      host: <>
+        from_secret: email-host
+      username: 
+        from_secret: email-user
       password:
         from_secret: email-passwd  
-      from: Drone CI <cloud@wilke-experience.de>
+      from: 
+        from_secret: email-from
       recipients: [ rb.mamchur@gmail.com, r.mamchur.we@gmail.com ]
-  when:
-    branch:
-    - flomaster
+#  when:
+#    branch:
+#    - flomaster
   
 depends_on:
 - node-master

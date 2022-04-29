@@ -176,13 +176,13 @@ steps:
 - name: notify
   image: drillster/drone-email
   settings:
-      host:.
+      host:
         from_secret: email-host
-      username:.
+      username:
         from_secret: email-user
       password:
-        from_secret: email-passwd..
-      from:.
+        from_secret: email-passwd
+      from:
         from_secret: email-from
       recipients: [ rb.mamchur@gmail.com, r.mamchur.we@gmail.com ]
   when:

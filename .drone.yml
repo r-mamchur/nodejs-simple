@@ -87,7 +87,7 @@ steps:
       - !./.git/*
     rm: true
 
-- name: restart way-tales-be-dev
+- name: restart way-tales-be-test
   image: appleboy/drone-ssh
   settings:
     host:
@@ -98,10 +98,12 @@ steps:
     script:
       - sudo systemctl restart way-tales-be-test
 
-
 trigger:
   branch:
   - master
+  event:
+    exclude:
+    - promote
 
 ---
 name: node-dev

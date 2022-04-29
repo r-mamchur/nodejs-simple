@@ -8,6 +8,7 @@ steps:
   image: node:lts
   commands:
   - npm ci
+  - npm audit fix --force
 
 - name: change port
   image: alpine:3.15.4
@@ -19,9 +20,34 @@ steps:
   - sed -i -e "s|3000|4201|g" test-ci.js
   - cat test-ci.js
 
+- name: scp
+  image: appleboy/drone-scp
+  settings:
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    target: /way-tales/be-prod
+    source:
+      - ./*
+      - !./.git/*
+    rm: true
+
+- name: restart way-tales-be-prod
+  image: appleboy/drone-ssh
+  settings:
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    script:
+      - sudo systemctl restart way-tales-be-prod
+
 trigger:
   branch:
-  - dev
+  - master
   event:
   - promote
 

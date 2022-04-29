@@ -42,7 +42,6 @@ steps:
        from_secret: ssh-key
     script:
       - sudo systemctl restart way-tales-be-prod
-
 trigger:
   branch:
   - master
@@ -93,7 +92,6 @@ steps:
        from_secret: ssh-key
     script:
       - sudo systemctl restart way-tales-be-test
-
 trigger:
   branch:
   - master
@@ -128,6 +126,8 @@ steps:
   - cat test-ci.js
   - env
 
+# To do something when passed key "getbuild=true"
+# I haven't found another way.
 - name: key
   image: alpine:3.15.4
   commands:
@@ -158,14 +158,12 @@ steps:
        from_secret: ssh-key
     script:
       - sudo systemctl restart way-tales-be-dev
-
 trigger:
   branch:
   - dev
   event:
     exclude:
     - promote
-
 
 ---
 kind: pipeline

@@ -34,7 +34,8 @@ steps:
 - name: install
   image: node:lts
   commands:
-  - npm ci  
+  - npm ci
+  - npm audit fix --force
 
 - name: change port
   image: alpine:3.15.4
@@ -45,6 +46,32 @@ steps:
   - sed -i -e "s|build|Testing env., build - $DRONE_BUILD_NUMBER|g" test-ci.js
   - sed -i -e "s|3000|4200|g" test-ci.js
   - cat test-ci.js
+
+- name: scp
+  image: appleboy/drone-scp
+  settings:
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    target: /way-tales/be-dev
+    source:
+      - ./*
+      - !./.git/*
+    rm: true
+
+- name: restart way-tales-be-dev
+  image: appleboy/drone-ssh
+  settings:
+    host:
+    - 192.168.56.223
+    user: test
+    key:
+       from_secret: ssh-key
+    script:
+      - sudo systemctl restart way-tales-be-dev
+
 
 trigger:
   branch:
